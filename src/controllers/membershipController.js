@@ -4,9 +4,9 @@ const prisma = new PrismaClient();
 
 export const createMembership = async (req, res) => {
   try {
-    const { type, startDate, endDate, price, userId } = req.body;
+    const { type, startDate, endDate, price, memberId } = req.body;
     const membership = await prisma.membership.create({
-      data: { type, startDate, endDate, price, userId }
+      data: { type, startDate, endDate, price, memberId }
     });
     res.status(201).json(membership);
   } catch (error) {
@@ -17,7 +17,7 @@ export const createMembership = async (req, res) => {
 export const getMemberships = async (req, res) => {
   try {
     const memberships = await prisma.membership.findMany({
-      include: { user: true }
+      include: { member: true }
     });
     res.status(200).json(memberships);
   } catch (error) {

@@ -1,5 +1,6 @@
 import appConfig from './src/config/appConfig.js';
 import userRouter from './src/routes/userRouter.js';
+import memberRouter from './src/routes/memberRouter.js';
 import membershipRouter from './src/routes/membershipRouter.js';
 import equipmentRouter from './src/routes/equipmentRouter.js';
 import supplementRouter from './src/routes/supplementRouter.js';
@@ -13,6 +14,7 @@ const PORT = process.env.PORT || 4000;
 
 // Rutas de la API
 app.use('/users', userRouter);
+app.use('/members', memberRouter);
 app.use('/memberships', membershipRouter);
 app.use('/equipments', equipmentRouter);
 app.use('/supplements', supplementRouter);

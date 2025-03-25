@@ -4,9 +4,9 @@ const prisma = new PrismaClient();
 
 export const createSale = async (req, res) => {
   try {
-    const { userId, supplementId, quantity, totalPrice } = req.body;
+    const { memberId, supplementId, quantity, totalPrice } = req.body;
     const sale = await prisma.sale.create({
-      data: { userId, supplementId, quantity, totalPrice }
+      data: { memberId, supplementId, quantity, totalPrice }
     });
 
     // Reducir el stock del suplemento
@@ -25,7 +25,7 @@ export const getSales = async (req, res) => {
   try {
     const sales = await prisma.sale.findMany({
       include: {
-        user: true,
+        member: true,
         supplement: true
       }
     });
