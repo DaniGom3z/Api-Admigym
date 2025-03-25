@@ -9,7 +9,13 @@ const SALTOS = parseInt(SALTOS_BCRYPT);
 
 const createMemberSchema = Joi.object({
     name: Joi.string().required(),
-    number: Joi.string().min(6).required()
+    number: Joi.string().min(6).required(),
+    membership: Joi.object({  // Nested schema for membership data
+        type: Joi.string().valid('mensual', 'diaria').required(),
+        startDate: Joi.date().iso().required(),
+        endDate: Joi.date().iso().greater(Joi.ref('startDate')).required(),
+        price: Joi.number().positive().required()
+    })
 });
 
 const memberIdSchema = Joi.object({
@@ -27,7 +33,7 @@ const createMember = async (req, res) => {
             });
         }
 
-        const { name, number } = value;
+        const { name, number, membership } = value;
 
         const memberExists = await prisma.member.findUnique({
             where: { number }
@@ -39,21 +45,40 @@ const createMember = async (req, res) => {
             });
         }
 
+        // Use Prisma transaction to create both Member and Membership atomically
+        const newMember = await prisma.$transaction(async (tx) => {
+            const newMember = await tx.member.create({
+                data: {
+                    name,
+                    number,
+                },
+            });
 
+            let newMembership = null; // Initialize newMembership to null
 
-        const newMember = await prisma.member.create({
-            data: {
-                name,
-                number
+            // Create membership if membership data was provided
+            if (membership) {
+                newMembership = await tx.membership.create({
+                    data: {
+                        type: membership.type,
+                        startDate: new Date(membership.startDate),  // Ensure correct date format
+                        endDate: new Date(membership.endDate),        // Ensure correct date format
+                        price: membership.price,
+                        user: { connect: { id: newMember.id } },
+                    },
+                });
             }
+
+            return { newMember, newMembership };  // Return both newMember and newMembership
         });
 
         return res.status(201).json({
             message: "Miembro creado exitosamente",
             member: {
-                id: newMember.id,
-                name: newMember.name,
-                number: newMember.number
+                id: newMember.newMember.id,
+                name: newMember.newMember.name,
+                number: newMember.newMember.number,
+                membership: newMember.newMembership // Include membership in the response
             }
         });
     } catch (error) {
@@ -70,7 +95,8 @@ const getAllMembers = async (req, res) => {
             select: {
                 id: true,
                 name: true,
-                number: true
+                number: true,
+                membership: true // Include the membership data in the select
             }
         });
 
@@ -104,7 +130,8 @@ const getMemberById = async (req, res) => {
             select: {
                 id: true,
                 name: true,
-                number: true
+                number: true,
+                membership: true // Also include membership here
             }
         });
 

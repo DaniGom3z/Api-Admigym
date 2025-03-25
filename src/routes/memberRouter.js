@@ -6,6 +6,7 @@ const memberRoute = express.Router();
 // ✅ Crear usuario (sin protección)
 memberRoute.post("/", Member.createMember);
 
+
 // ✅ Obtener todos los usuarios (protegida con JWT)
 memberRoute.get("/",  Member.getAllMembers);
 
